@@ -27,8 +27,8 @@ NetworkScanner is a Django web application that scans your local network for con
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/yourusername/NetworkScanner.git
-   cd NetworkScanner
+   git clone https://github.com/bhargav-yarlagadda/Net-Scan.git
+   cd Net-Scan
    pip install django scapy requests
    ```
 2. **Install Deps**
