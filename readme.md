@@ -1,7 +1,7 @@
 # Network Scanner Project
 
+**PS:I'm still trying to figure out how to send packets to private networks cuz firewalls are blocking the packets broadcasts,currently this project is under developement**
 This project is a network scanner built using **Django** and **Scapy**. It scans your local network to discover devices and provides detailed information such as IP addresses, MAC addresses, hostnames, and inferred device types. The scanner utilizes ARP requests to detect active devices and attempts to identify their types through MAC address lookups.
-
 ## Features
 
 - **Local Network Scanning:** Automatically discover devices in a specified IP range using ARP requests.
