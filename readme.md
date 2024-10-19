@@ -1,22 +1,26 @@
-# NetworkScanner
+# Network Scanner Project
 
-NetworkScanner is a Django web application that scans your local network for connected devices, displaying their IP addresses, MAC addresses, and device names. This application helps users monitor their network and understand connected devices.
+This project is a network scanner built using **Django** and **Scapy**. It scans your local network to discover devices and provides detailed information such as IP addresses, MAC addresses, hostnames, and inferred device types. The scanner utilizes ARP requests to detect active devices and attempts to identify their types through MAC address lookups.
 
 ## Features
 
-- **Device Discovery**: Automatically scans the network to find all connected devices.
-- **Device Information**: Displays IP addresses, MAC addresses, and device names.
-- **User-Friendly Interface**: Simple and clean web interface for easy interaction.
-- **Public IP Display**: Shows the public IP address of your network.
-
-## Technologies Used
-
-- **Django**: Python web framework for building the application.
-- **Scapy**: Python library for network packet manipulation and scanning.
-- **Requests**: Library for making HTTP requests, used to fetch public IP.
-- **HTML/CSS**: Basic web technologies for front-end design.
+- **Local Network Scanning:** Automatically discover devices in a specified IP range using ARP requests.
+- **Device Information:** Retrieve details for each device, including:
+  - IP Address
+  - MAC Address
+  - Hostname (if available)
+  - Device Type (inferred from the MAC address)
+- **MAC Address Lookup:** Identify device manufacturers using an external MAC address lookup API.
 
 ## Installation
+
+### Prerequisites
+
+- Python 3.x
+- Django
+- Scapy
+- Requests library
+
 
 ### Prerequisites
 
@@ -29,7 +33,7 @@ NetworkScanner is a Django web application that scans your local network for con
    ```bash
    git clone https://github.com/bhargav-yarlagadda/Net-Scan.git
    cd Net-Scan
-   pip install django scapy requests
+   cd project
    ```
 2. **Install Deps**
    ```bash
