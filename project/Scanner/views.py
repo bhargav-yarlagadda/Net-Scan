@@ -44,7 +44,7 @@ def get_device_details(mac):
         response = requests.get(f"https://api.macvendors.com/{mac}", timeout=5)
         if response.status_code == 200:
             vendor = response.text  # Get organization (vendor) name
-            device_type = classify_device_type(vendor)  # Use the updated classification function
+            device_type = classify_device_type(vendor)  # Classify device type
             return {'vendor': vendor, 'type': device_type}
         else:
             return {'vendor': 'Unknown', 'type': 'Unknown'}
@@ -62,7 +62,7 @@ def get_device_name(ip):
 
 def networkScan(request):
     """Scan the local network for connected devices."""
-    target_ip = '192.168.0.0/24'  # Adjust target IP range
+    target_ip = '192.168.0.0/24'  # Adjust target IP range as needed
     arp = ARP(pdst=target_ip)
     ether = Ether(dst="ff:ff:ff:ff:ff:ff")
     packet = ether / arp
@@ -95,4 +95,8 @@ def networkScan(request):
         print(f"Could not retrieve public IP: {e}")
         public_ip = "Could not retrieve public IP"
 
-    return render(request, 'network_scan.html', {'devices': devices, 'public_ip': public_ip})
+    # Render the template with the devices and public IP
+    return render(request, 'network_scan.html', {
+        'devices': devices, 
+        'public_ip': public_ip,
+    })

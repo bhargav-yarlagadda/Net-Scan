@@ -9,35 +9,37 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-gray-900 text-gray-200">
     <div class="container mx-auto p-6">
-        <h1 class="text-3xl font-bold text-center mb-6">Connected Devices</h1>
+        <h1 class="text-4xl font-bold text-center mb-6">Connected Devices</h1>
 
         <p class="text-xl mb-4 text-center"><strong>Your Public IP:</strong> 
-            <span class="text-blue-600">{{ public_ip }}</span>
+            <span class="text-blue-400">{{ public_ip }}</span>
         </p>
 
         <div class="overflow-x-auto">
-            <table class="table-auto w-full bg-white shadow-md rounded-lg border-collapse">
+            <table class="table-auto w-full bg-gray-800 shadow-md rounded-lg border-collapse">
                 <thead>
-                    <tr class="bg-gray-800 text-white">
+                    <tr class="bg-gray-700 text-gray-300">
                         <th class="px-6 py-3 text-left">Device Name</th>
                         <th class="px-6 py-3 text-left">IP Address</th>
                         <th class="px-6 py-3 text-left">MAC Address</th>
                         <th class="px-6 py-3 text-left">Device Type</th>
+                        <th class="px-6 py-3 text-left">Vendor</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for device in devices %}
-                    <tr class="border-b hover:bg-gray-100">
+                    <tr class="border-b border-gray-600 hover:bg-gray-700">
                         <td class="px-6 py-4">{{ device.name }}</td>
                         <td class="px-6 py-4">{{ device.ip }}</td>
                         <td class="px-6 py-4">{{ device.mac }}</td>
                         <td class="px-6 py-4">{{ device.type }}</td>
+                        <td class="px-6 py-4">{{ device.vendor }}</td> <!-- Added vendor column -->
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="4" class="px-6 py-4 text-center text-gray-500">No devices found</td>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">No devices found</td>
                     </tr>
                     {% endfor %}
                 </tbody>
