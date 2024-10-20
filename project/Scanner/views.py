@@ -1,100 +1,98 @@
 from django.shortcuts import render
-from scapy.all import ARP, Ether, srp  # Import ARP and Ether classes for packet manipulation
-import requests  # Import requests to make HTTP requests
-import socket  # Import socket for network-related functions
+from scapy.all import ARP, Ether, srp
+import requests
+import socket
 
-def get_device_type(mac):
-    """
-    Function to determine the device type based on MAC address.
-    If the device type cannot be found in the API, it defaults to 'Unknown'.
+def classify_device_type(vendor):
+    """Classify device type based on the vendor name using a mapping dictionary."""
     
-    :param mac: MAC address of the device in string format (e.g., '00:1A:2B:3C:4D:5E')
-    :return: Device type as a string
-    """
-    try:
-        # Using the MAC Vendors API to look up the device manufacturer
-        response = requests.get(f"https://api.macvendors.com/{mac}", timeout=5)
-        
-        # Check if the response status code is 200 (successful)
-        if response.status_code == 200:
-            vendor = response.text  # Extract the vendor name from the response
-            return vendor  # Return the vendor name as the device type
-        else:
-            return "Unknown"  # Return "Unknown" if the API call fails
+    # Comprehensive mapping of top brands to device types
+    vendor_device_map = {
+        "mobile": [
+            "apple", "samsung", "xiaomi", "oneplus", "huawei", "oppo", "vivo",
+            "motorola", "nokia", "sony", "lg", "htc", "realme", "lenovo", "asus",
+            "google", "blackberry", "zte", "alcatel"
+        ],
+        "pc": [
+            "microsoft", "hp", "dell", "lenovo", "acer", "asus", "apple", "samsung",
+            "toshiba", "razer", "msi", "gigabyte", "alienware", "surface", "intel",
+            "amd", "lg"
+        ],
+        "tv": [
+            "samsung", "lg", "sony", "panasonic", "tcl", "philips", "sharp", 
+            "vizio", "hisense", "insignia", "xiaomi", "oneplus", "motorola"
+        ],
+        "router": [
+            "netgear", "linksys", "tp-link", "d-link", "asus", "xiaomi", "samsung", 
+            "apple", "huawei", "belkin"
+        ]
+    }
 
+    # Normalize the vendor name to lowercase for comparison
+    vendor = vendor.lower()
+
+    # Check against each category in the vendor_device_map
+    for device_type, brands in vendor_device_map.items():
+        if any(brand in vendor for brand in brands):
+            return device_type  # Return the matched device type
+
+    return "Unknown"  # Return "Unknown" if no matches are found
+
+def get_device_details(mac):
+    """Retrieve device details from the MAC Vendors API."""
+    try:
+        response = requests.get(f"https://api.macvendors.com/{mac}", timeout=5)
+        if response.status_code == 200:
+            vendor = response.text  # Get organization (vendor) name
+            device_type = classify_device_type(vendor)  # Use the updated classification function
+            return {'vendor': vendor, 'type': device_type}
+        else:
+            return {'vendor': 'Unknown', 'type': 'Unknown'}
     except requests.exceptions.RequestException as e:
-        # Log any request-related exceptions and return "Unknown"
-        print(f"Error fetching device type for MAC {mac}: {e}")
-        return "Unknown"
+        print(f"Error fetching device details for MAC {mac}: {e}")
+        return {'vendor': 'Unknown', 'type': 'Unknown'}
 
 def get_device_name(ip):
-    """
-    Function to resolve the hostname (device name) for a given IP address.
-    
-    :param ip: IP address to resolve
-    :return: Hostname as a string, or 'Unknown' if resolution fails
-    """
+    """Resolve hostname (device name) for a given IP address."""
     try:
-        device_name = socket.gethostbyaddr(ip)[0]  # Attempt reverse DNS lookup
+        device_name = socket.gethostbyaddr(ip)[0]
     except socket.herror:
-        device_name = "Unknown"  # Return "Unknown" if lookup fails
-    return device_name  # Return the resolved device name
+        device_name = "Unknown"
+    return device_name
 
 def networkScan(request):
-    """
-    Main function to scan the local network for connected devices.
-    
-    :param request: Django request object
-    :return: Renders a template displaying the list of discovered devices
-    """
-    target_ip = '192.168.0.0/24'  # Target IP range (adjust based on your network)
+    """Scan the local network for connected devices."""
+    target_ip = '192.168.0.0/24'  # Adjust target IP range
+    arp = ARP(pdst=target_ip)
+    ether = Ether(dst="ff:ff:ff:ff:ff:ff")
+    packet = ether / arp
 
-    # Create an ARP request packet
-    arp = ARP(pdst=target_ip)  # Specify the target IP range for ARP requests
-    ether = Ether(dst="ff:ff:ff:ff:ff:ff")  # Set Ethernet frame to broadcast
-    packet = ether / arp  # Combine Ether and ARP to create the full packet
-
-    # Send the packet and capture the response
-    result = srp(packet, timeout=3, verbose=0)[0]  # Receive responses
-
-    # List to store device information
+    result = srp(packet, timeout=3, verbose=0)[0]
     devices = []
 
-    # Print the total number of responses received
     print(f"Total responses received: {len(result)}")
     
-    # Iterate over the results to gather device information
     for sent, received in result:
-        # Resolve device name from the IP address
         device_name = get_device_name(received.psrc)
+        device_info = get_device_details(received.hwsrc)
         
-        # Determine device type by querying the external API using MAC address
-        device_type = get_device_type(received.hwsrc)
-        
-        # Log the device information for debugging
         print(f"MAC: {received.hwsrc}, IP: {received.psrc}, Device Name: {device_name}")
-
-        # Append discovered device's info to the list
         devices.append({
-            'ip': received.psrc,  # Responding device's IP address
-            'mac': received.hwsrc,  # Responding device's MAC address
-            'name': device_name,  # Resolved device name
-            'type': device_type,  # Retrieved device type
+            'ip': received.psrc,
+            'mac': received.hwsrc,
+            'name': device_name,
+            'vendor': device_info['vendor'],
+            'type': device_info['type'],
         })
 
-    # Print detailed information for each discovered device
     for device in devices:
-        print(f"Device Name: {device['name']}, IP: {device['ip']}, MAC: {device['mac']}, Type: {device['type']}")
+        print(f"Device Name: {device['name']}, IP: {device['ip']}, MAC: {device['mac']}, Vendor: {device['vendor']}, Type: {device['type']}")
 
-    # Initialize variable to retrieve the public IP address
     public_ip = None
     try:
-        # Get public IP using an external API
         public_ip = requests.get("https://api64.ipify.org?format=json").json()["ip"]
     except requests.exceptions.RequestException as e:
-        # Handle any errors that occur during the API call
         print(f"Could not retrieve public IP: {e}")
         public_ip = "Could not retrieve public IP"
 
-    # Render the template with the devices and public IP address
-    return render(request, r"C:\Users\bhargav\OneDrive\Desktop\projects\Net-Scan\project\Scanner\templates\network_scan.html", {'devices': devices, 'public_ip': public_ip})
+    return render(request, 'network_scan.html', {'devices': devices, 'public_ip': public_ip})
